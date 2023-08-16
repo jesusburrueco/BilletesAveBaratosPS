@@ -1,0 +1,25 @@
+$buscar="-------------"
+#Ficheros con todos los resultados de los billetes de AVE de cada día
+ls d:\ave\*.html | %{
+    #Buscar las tarifas y analizarlas para quedarse SOLO CON EL MENOR VALOR
+    $valorabuscar=80
+    foreach($tarifa in (gc $_.FullName | Select-String "cdgoTarifa"))
+    {
+        $valor=(($tarifa  | Select-String "€") -replace "<.*?>" )
+        if($valor)
+        {
+            $partido=$valor.trim()
+            if($partido -match "")
+            {
+                $partidobuscar=$partido.Replace('€','').Replace(',','.').trim()
+                $precio=$partidobuscar.Split(' ')[0] -as [Int]
+                if($precio -lt $valorabuscar)
+                {
+                    $buscar=$partidobuscar.Split(' ')[0]
+                    $valorabuscar=$buscar
+                }
+            }
+        }
+    }
+    ((gc $_ | Select-String $buscar,"hour salida","<span>AVE</span>") -replace "<.*?>").trim()
+}
